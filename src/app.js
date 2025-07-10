@@ -262,7 +262,9 @@ export default class App {
 						userColor: extra.userColor,
 					});
 
-				const taskDescriptions = message.split(", ");
+				const firstDelimiter = message.match(/[,;]/)?.[0] || ",";  //DRG: Delimiters , or ;  with 0 or more white spaces
+				const delimiter = firstDelimiter === "," ? ", " : "; ";
+				const taskDescriptions = message.split(new RegExp(`\\${firstDelimiter}\\s*`));
 				if (
 					user.getTasks().length + taskDescriptions.length >
 					parseInt(this.#maxTasksPerUser.toString(), 10)
@@ -280,8 +282,8 @@ export default class App {
 					}); 
 					responseDetail = taskDescriptions
 						.map((task) => `📝 "${task}"`)
-						.join(", ")
-						.replace(/,([^,]*)$/, " &$1");;
+						.join(delimiter)
+						.replace(new RegExp(`\\${firstDelimiter}(?=[^${firstDelimiter}]*$)`), " &"); //DRG: original code had 2 terminating ";". Check if things break
 					template = _userConfig.responseTo[this.#languageCode].addTask;
 				}
 			}
